@@ -1,24 +1,26 @@
 {
   "tests": [
     {
-      "name": "Get greeting settings",
+      "name": "Get default greeting",
       "method": "GET",
-      "path": "/",
+      "path": "/?id=default",
       "expectedStatus": 200,
       "expectedBody": {
+        "id": "string",
         "message": "string",
         "imageUrl": "string"
       },
       "bodyMatcher": "partial"
     },
     {
-      "name": "Update greeting settings with auth",
+      "name": "Update greeting with admin password",
       "method": "POST",
       "path": "/",
       "headers": {
-        "X-Auth-Token": "210212"
+        "X-Auth-Token": "210212251277"
       },
       "body": {
+        "id": "test",
         "message": "Test message",
         "imageUrl": "https://example.com/test.jpg"
       },

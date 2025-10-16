@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,7 +7,7 @@ import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 
-const CORRECT_PASSWORD = "210212";
+const ADMIN_PASSWORD = "210212251277";
 const API_URL = "https://functions.poehali.dev/828e1e69-52be-411c-9b7c-26486b3b2d8e";
 
 interface GreetingCardProps {
@@ -20,6 +20,7 @@ export default function GreetingCard({
   imageUrl = "https://cdn.poehali.dev/projects/5575572e-9552-4ad2-b010-e12c5cc8067f/files/75543a6c-c893-4198-a0ba-6b48e331eb86.jpg"
 }: GreetingCardProps) {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -31,15 +32,33 @@ export default function GreetingCard({
   const [currentImage, setCurrentImage] = useState('');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [greetingId, setGreetingId] = useState('default');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    loadSettings();
-  }, []);
+    let deviceId = localStorage.getItem('deviceGreetingId');
+    if (!deviceId) {
+      deviceId = 'default';
+      localStorage.setItem('deviceGreetingId', deviceId);
+    }
+    
+    const urlId = searchParams.get('id');
+    if (urlId) {
+      setGreetingId(urlId);
+    } else {
+      setGreetingId(deviceId);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (greetingId) {
+      loadSettings();
+    }
+  }, [greetingId]);
 
   const loadSettings = async () => {
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_URL}?id=${greetingId}`);
       const data = await response.json();
       setMessage(data.message);
       setTempMessage(data.message);
@@ -59,9 +78,10 @@ export default function GreetingCard({
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'X-Auth-Token': CORRECT_PASSWORD
+          'X-Auth-Token': ADMIN_PASSWORD
         },
         body: JSON.stringify({
+          id: greetingId,
           message: newMessage,
           imageUrl: newImageUrl
         })
@@ -70,7 +90,7 @@ export default function GreetingCard({
       if (response.ok) {
         toast({
           title: "Сохранено!",
-          description: "Изменения видны всем пользователям",
+          description: "Изменения применены к этой версии",
         });
       }
     } catch (error) {
@@ -99,7 +119,7 @@ export default function GreetingCard({
   };
 
   const handlePasswordSubmit = () => {
-    if (password === CORRECT_PASSWORD) {
+    if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
       setShowPasswordDialog(false);
       setPassword('');
@@ -293,6 +313,14 @@ export default function GreetingCard({
                   >
                     <Icon name="Settings" size={18} className="mr-2" />
                     Настройки
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/manage')}
+                    variant="outline"
+                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Icon name="Users" size={18} className="mr-2" />
+                    Версии
                   </Button>
                 </div>
               </div>

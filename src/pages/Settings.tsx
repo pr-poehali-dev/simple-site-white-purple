@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 
-const CORRECT_PASSWORD = "210212";
+const CORRECT_PASSWORD = "210212251277";
 
 export default function Settings() {
   const navigate = useNavigate();
