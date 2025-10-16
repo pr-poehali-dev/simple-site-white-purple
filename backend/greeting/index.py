@@ -39,6 +39,22 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         action = query_params.get('action', 'get')
         
         if action == 'list':
+            headers = {k.lower(): v for k, v in event.get('headers', {}).items()}
+            auth_token = headers.get('x-auth-token', '')
+            
+            if auth_token != ADMIN_PASSWORD:
+                cur.close()
+                conn.close()
+                return {
+                    'statusCode': 403,
+                    'headers': {
+                        'Content-Type': 'application/json',
+                        'Access-Control-Allow-Origin': '*'
+                    },
+                    'body': json.dumps({'error': 'Unauthorized'}),
+                    'isBase64Encoded': False
+                }
+            
             cur.execute(f"SELECT id, message, image_url FROM {schema}.greeting_settings ORDER BY created_at DESC LIMIT 100")
             rows = cur.fetchall()
             

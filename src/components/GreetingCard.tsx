@@ -87,7 +87,11 @@ export default function GreetingCard({
 
   const loadAllVersions = async () => {
     try {
-      const response = await fetch(`${API_URL}?action=list`);
+      const response = await fetch(`${API_URL}?action=list`, {
+        headers: {
+          'X-Auth-Token': ADMIN_PASSWORD
+        }
+      });
       const data = await response.json();
       setVersions(data.versions || []);
     } catch (error) {
@@ -248,6 +252,10 @@ export default function GreetingCard({
   };
 
   const handleVersionsClick = async () => {
+    if (!isAuthenticated) {
+      setShowPasswordDialog(true);
+      return;
+    }
     await loadAllVersions();
     setShowVersionsDialog(true);
   };
@@ -270,10 +278,6 @@ export default function GreetingCard({
   };
 
   const startEditingVersion = (version: Version) => {
-    if (!isAuthenticated) {
-      setShowPasswordDialog(true);
-      return;
-    }
     setEditingVersionId(version.id);
     setEditingMessage(version.message);
     setEditingImage(version.imageUrl);
