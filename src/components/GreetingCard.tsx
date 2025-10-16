@@ -87,11 +87,7 @@ export default function GreetingCard({
 
   const loadAllVersions = async () => {
     try {
-      const response = await fetch(`${API_URL}?action=list`, {
-        headers: {
-          'X-Auth-Token': ADMIN_PASSWORD
-        }
-      });
+      const response = await fetch(`${API_URL}?action=list`);
       const data = await response.json();
       setVersions(data.versions || []);
     } catch (error) {
@@ -252,10 +248,6 @@ export default function GreetingCard({
   };
 
   const handleVersionsClick = async () => {
-    if (!isAuthenticated) {
-      setShowPasswordDialog(true);
-      return;
-    }
     await loadAllVersions();
     setShowVersionsDialog(true);
   };
@@ -270,11 +262,18 @@ export default function GreetingCard({
   };
 
   const handleSwitchVersion = (versionId: string) => {
-    const url = `${window.location.origin}${window.location.pathname}?id=${versionId}`;
-    window.open(url, '_blank');
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('id', versionId);
+    setSearchParams(newParams);
+    setShowVersionsDialog(false);
+    window.location.reload();
   };
 
   const startEditingVersion = (version: Version) => {
+    if (!isAuthenticated) {
+      setShowPasswordDialog(true);
+      return;
+    }
     setEditingVersionId(version.id);
     setEditingMessage(version.message);
     setEditingImage(version.imageUrl);
@@ -435,7 +434,7 @@ export default function GreetingCard({
           <DialogHeader>
             <DialogTitle>Все версии (100 последних)</DialogTitle>
             <DialogDescription>
-              Список всех версий приветствий. Нажмите "Редактировать" для изменения.
+              Выберите версию для просмотра. Редактирование требует пароль.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
@@ -507,21 +506,20 @@ export default function GreetingCard({
                     </div>
                     <div className="flex gap-2 mt-2">
                       <Button 
+                        onClick={() => handleSwitchVersion(version.id)} 
+                        size="sm" 
+                        className="flex-1"
+                      >
+                        <Icon name="Eye" size={16} className="mr-1" />
+                        Открыть
+                      </Button>
+                      <Button 
                         onClick={() => startEditingVersion(version)} 
                         size="sm" 
                         variant="outline"
-                        className="flex-1"
                       >
                         <Icon name="Edit" size={16} className="mr-1" />
                         Редактировать
-                      </Button>
-                      <Button 
-                        onClick={() => handleSwitchVersion(version.id)} 
-                        size="sm" 
-                        variant="outline"
-                      >
-                        <Icon name="ExternalLink" size={16} className="mr-1" />
-                        Открыть
                       </Button>
                       <Button 
                         onClick={() => handleCopyUrl(version.id)} 
