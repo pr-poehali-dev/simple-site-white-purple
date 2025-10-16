@@ -300,11 +300,8 @@ export default function GreetingCard({
   };
 
   const handleSwitchVersion = (versionId: string) => {
-    const newParams = new URLSearchParams(searchParams);
-    newParams.set('id', versionId);
-    setSearchParams(newParams);
-    setShowVersionsDialog(false);
-    window.location.reload();
+    const url = `${window.location.origin}${window.location.pathname}?id=${versionId}`;
+    window.open(url, '_blank');
   };
 
   const handleCopyLink = (versionId: string) => {
