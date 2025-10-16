@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,6 +17,7 @@ export default function GreetingCard({
   initialMessage = "Добро пожаловать!", 
   imageUrl = "https://cdn.poehali.dev/projects/5575572e-9552-4ad2-b010-e12c5cc8067f/files/75543a6c-c893-4198-a0ba-6b48e331eb86.jpg"
 }: GreetingCardProps) {
+  const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState('');
@@ -34,6 +36,23 @@ export default function GreetingCard({
     setTempMessage(savedMessage || initialMessage);
     setCurrentImage(savedImage || imageUrl);
   }, [initialMessage, imageUrl]);
+
+  const handleReset = () => {
+    if (!isAuthenticated) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
+    const savedDefaults = localStorage.getItem('defaultSettings');
+    if (savedDefaults) {
+      const defaults = JSON.parse(savedDefaults);
+      setMessage(defaults.message);
+      setTempMessage(defaults.message);
+      setCurrentImage(defaults.image);
+      localStorage.setItem('greetingMessage', defaults.message);
+      localStorage.setItem('greetingImage', defaults.image);
+    }
+  };
 
   const handlePasswordSubmit = () => {
     if (password === CORRECT_PASSWORD) {
@@ -148,13 +167,31 @@ export default function GreetingCard({
                 <h2 className="text-3xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
                   {message}
                 </h2>
-                <Button 
-                  onClick={handleEdit}
-                  className="bg-primary hover:bg-primary/90 text-white font-medium px-6 shadow-lg hover:shadow-xl transition-all"
-                >
-                  <Icon name="Edit3" size={18} className="mr-2" />
-                  Редактировать
-                </Button>
+                <div className="flex gap-3 justify-center flex-wrap">
+                  <Button 
+                    onClick={handleEdit}
+                    className="bg-primary hover:bg-primary/90 text-white font-medium px-6 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Icon name="Edit3" size={18} className="mr-2" />
+                    Редактировать
+                  </Button>
+                  <Button 
+                    onClick={handleReset}
+                    variant="outline"
+                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Icon name="RotateCcw" size={18} className="mr-2" />
+                    Сбросить
+                  </Button>
+                  <Button 
+                    onClick={() => navigate('/settings')}
+                    variant="outline"
+                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6 shadow-lg hover:shadow-xl transition-all"
+                  >
+                    <Icon name="Settings" size={18} className="mr-2" />
+                    Настройки
+                  </Button>
+                </div>
               </div>
             )}
           </div>
