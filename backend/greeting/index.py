@@ -31,7 +31,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(database_url)
     cur = conn.cursor()
     
-    cur.execute("SET search_path TO t_p33753390_simple_site_white_pu")
+    schema = 't_p33753390_simple_site_white_pu'
     
     if method == 'GET':
         query_params = event.get('queryStringParameters') or {}
@@ -55,14 +55,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            cur.execute("SELECT id, message, image_url FROM greeting_settings ORDER BY created_at DESC")
+            cur.execute(f"SELECT id, message, image_url FROM {schema}.greeting_settings ORDER BY created_at DESC LIMIT 100")
             rows = cur.fetchall()
             
             result = {
                 'versions': [{'id': row[0], 'message': row[1], 'imageUrl': row[2]} for row in rows]
             }
         else:
-            cur.execute("SELECT message, image_url FROM greeting_settings WHERE id = %s", (greeting_id,))
+            cur.execute(f"SELECT message, image_url FROM {schema}.greeting_settings WHERE id = %s", (greeting_id,))
             row = cur.fetchone()
             
             if row:
@@ -114,7 +114,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         image_url = body_data.get('imageUrl', '')
         
         cur.execute(
-            "INSERT INTO greeting_settings (id, message, image_url, updated_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET message = %s, image_url = %s, updated_at = CURRENT_TIMESTAMP",
+            f"INSERT INTO {schema}.greeting_settings (id, message, image_url, updated_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET message = %s, image_url = %s, updated_at = CURRENT_TIMESTAMP",
             (greeting_id, message, image_url, message, image_url)
         )
         conn.commit()
