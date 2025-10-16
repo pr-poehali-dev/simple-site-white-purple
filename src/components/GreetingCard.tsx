@@ -41,7 +41,7 @@ export default function GreetingCard({
   const [isLoading, setIsLoading] = useState(true);
   const [greetingId, setGreetingId] = useState('default');
   const [versions, setVersions] = useState<Version[]>([]);
-  const [showVersionsList, setShowVersionsList] = useState(false);
+  const [showVersionsList, setShowVersionsList] = useState(true);
   const [editingVersionId, setEditingVersionId] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState('');
   const [editingImage, setEditingImage] = useState('');
@@ -70,10 +70,8 @@ export default function GreetingCard({
   }, [greetingId]);
 
   useEffect(() => {
-    if (isAuthenticated) {
-      loadAllVersions();
-    }
-  }, [isAuthenticated]);
+    loadAllVersions();
+  }, []);
 
   const loadSettings = async () => {
     try {
@@ -100,13 +98,8 @@ export default function GreetingCard({
       });
       const data = await response.json();
       setVersions(data.versions || []);
-      setShowVersionsList(true);
     } catch (error) {
-      toast({
-        title: "Ошибка",
-        description: "Не удалось загрузить версии",
-        variant: "destructive"
-      });
+      console.error('Failed to load versions:', error);
     }
   };
 
@@ -259,11 +252,7 @@ export default function GreetingCard({
   };
 
   const handleVersionsClick = async () => {
-    if (!isAuthenticated) {
-      setShowPasswordDialog(true);
-      return;
-    }
-    await loadAllVersions();
+    setShowVersionsList(!showVersionsList);
   };
 
   const handleCopyUrl = (versionId: string) => {
@@ -283,6 +272,10 @@ export default function GreetingCard({
   };
 
   const startEditingVersion = (version: Version) => {
+    if (!isAuthenticated) {
+      setShowPasswordDialog(true);
+      return;
+    }
     setEditingVersionId(version.id);
     setEditingMessage(version.message);
     setEditingImage(version.imageUrl);
@@ -402,8 +395,8 @@ export default function GreetingCard({
                 Изменить картинку
               </Button>
               <Button onClick={handleVersionsClick} variant="outline" className="flex-1 min-w-[140px]">
-                <Icon name="List" size={18} className="mr-2" />
-                Все версии
+                <Icon name={showVersionsList ? "ChevronRight" : "List"} size={18} className="mr-2" />
+                {showVersionsList ? 'Скрыть список' : 'Показать список'}
               </Button>
             </div>
           </div>
