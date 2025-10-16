@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
@@ -31,6 +32,7 @@ export default function GreetingCard({
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showVersionsDialog, setShowVersionsDialog] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -41,7 +43,12 @@ export default function GreetingCard({
   const [isLoading, setIsLoading] = useState(true);
   const [greetingId, setGreetingId] = useState('default');
   const [versions, setVersions] = useState<Version[]>([]);
+  const [newVersionId, setNewVersionId] = useState('');
+  const [newVersionMessage, setNewVersionMessage] = useState('');
+  const [newVersionImage, setNewVersionImage] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const newVersionFileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let deviceId = localStorage.getItem('deviceGreetingId');
@@ -128,6 +135,54 @@ export default function GreetingCard({
     }
   };
 
+  const createNewVersion = async () => {
+    if (!newVersionId.trim() || !newVersionMessage.trim()) {
+      toast({
+        title: "Ошибка",
+        description: "Заполните все поля",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': ADMIN_PASSWORD
+        },
+        body: JSON.stringify({
+          id: newVersionId.trim(),
+          message: newVersionMessage,
+          imageUrl: newVersionImage || imageUrl
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Создано!",
+          description: `Версия "${newVersionId}" успешно создана`,
+        });
+        setShowCreateDialog(false);
+        setNewVersionId('');
+        setNewVersionMessage('');
+        setNewVersionImage('');
+        await loadAllVersions();
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось создать версию",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   const handlePasswordSubmit = () => {
     if (password === ADMIN_PASSWORD) {
       setIsAuthenticated(true);
@@ -186,6 +241,22 @@ export default function GreetingCard({
     }
   };
 
+  const handleNewVersionImageUpload = () => {
+    newVersionFileInputRef.current?.click();
+  };
+
+  const handleNewVersionFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setNewVersionImage(result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     if (!isAuthenticated) {
@@ -221,6 +292,11 @@ export default function GreetingCard({
     }
     await loadAllVersions();
     setShowVersionsDialog(true);
+  };
+
+  const handleCreateClick = () => {
+    setShowVersionsDialog(false);
+    setShowCreateDialog(true);
   };
 
   const handleSwitchVersion = (versionId: string) => {
@@ -385,7 +461,13 @@ export default function GreetingCard({
       <Dialog open={showVersionsDialog} onOpenChange={setShowVersionsDialog}>
         <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Все версии приветствий</DialogTitle>
+            <DialogTitle className="flex items-center justify-between">
+              <span>Все версии приветствий</span>
+              <Button onClick={handleCreateClick} size="sm">
+                <Icon name="Plus" size={16} className="mr-1" />
+                Создать версию
+              </Button>
+            </DialogTitle>
             <DialogDescription>
               Выберите версию для просмотра или скопируйте ссылку для отправки
             </DialogDescription>
@@ -433,6 +515,104 @@ export default function GreetingCard({
                 </Card>
               ))
             )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
+        <DialogContent className="max-w-xl">
+          <DialogHeader>
+            <DialogTitle>Создать новую версию</DialogTitle>
+            <DialogDescription>
+              Укажите уникальное имя и текст для новой версии приветствия
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="version-id">Имя версии</Label>
+              <Input
+                id="version-id"
+                value={newVersionId}
+                onChange={(e) => setNewVersionId(e.target.value)}
+                placeholder="например: anna, vova, family"
+                className="mt-1"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Используйте латиницу без пробелов
+              </p>
+            </div>
+            
+            <div>
+              <Label htmlFor="version-message">Текст приветствия</Label>
+              <Input
+                id="version-message"
+                value={newVersionMessage}
+                onChange={(e) => setNewVersionMessage(e.target.value)}
+                placeholder="Введите текст приветствия"
+                className="mt-1"
+              />
+            </div>
+            
+            <div>
+              <Label>Фото (необязательно)</Label>
+              <div className="mt-2 flex items-center gap-4">
+                {newVersionImage && (
+                  <img 
+                    src={newVersionImage} 
+                    alt="Preview" 
+                    className="w-20 h-20 object-cover rounded-lg"
+                  />
+                )}
+                <Button 
+                  onClick={handleNewVersionImageUpload}
+                  variant="outline"
+                  size="sm"
+                >
+                  <Icon name="Upload" size={16} className="mr-2" />
+                  {newVersionImage ? 'Изменить фото' : 'Загрузить фото'}
+                </Button>
+                <input
+                  ref={newVersionFileInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleNewVersionFileChange}
+                  className="hidden"
+                />
+              </div>
+              {!newVersionImage && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Если не загрузите, будет использовано фото по умолчанию
+                </p>
+              )}
+            </div>
+            
+            <div className="flex gap-2 pt-4">
+              <Button 
+                onClick={createNewVersion} 
+                className="flex-1"
+                disabled={isCreating}
+              >
+                {isCreating ? (
+                  <>
+                    <Icon name="Loader2" size={16} className="mr-2 animate-spin" />
+                    Создание...
+                  </>
+                ) : (
+                  <>
+                    <Icon name="Check" size={16} className="mr-2" />
+                    Создать версию
+                  </>
+                )}
+              </Button>
+              <Button 
+                onClick={() => setShowCreateDialog(false)} 
+                variant="outline"
+                className="flex-1"
+                disabled={isCreating}
+              >
+                Отмена
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
