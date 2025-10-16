@@ -31,6 +31,8 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
     conn = psycopg2.connect(database_url)
     cur = conn.cursor()
     
+    cur.execute("SET search_path TO t_p33753390_simple_site_white_pu")
+    
     if method == 'GET':
         query_params = event.get('queryStringParameters') or {}
         greeting_id = query_params.get('id', 'default')
@@ -53,14 +55,14 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            cur.execute("SELECT id, message, image_url FROM t_p33753390_simple_site_white_pu.greeting_settings ORDER BY created_at DESC")
+            cur.execute("SELECT id, message, image_url FROM greeting_settings ORDER BY created_at DESC")
             rows = cur.fetchall()
             
             result = {
                 'versions': [{'id': row[0], 'message': row[1], 'imageUrl': row[2]} for row in rows]
             }
         else:
-            cur.execute("SELECT message, image_url FROM t_p33753390_simple_site_white_pu.greeting_settings WHERE id = %s", (greeting_id,))
+            cur.execute("SELECT message, image_url FROM greeting_settings WHERE id = %s", (greeting_id,))
             row = cur.fetchone()
             
             if row:
@@ -112,7 +114,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
         image_url = body_data.get('imageUrl', '')
         
         cur.execute(
-            "INSERT INTO t_p33753390_simple_site_white_pu.greeting_settings (id, message, image_url, updated_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET message = %s, image_url = %s, updated_at = CURRENT_TIMESTAMP",
+            "INSERT INTO greeting_settings (id, message, image_url, updated_at) VALUES (%s, %s, %s, CURRENT_TIMESTAMP) ON CONFLICT (id) DO UPDATE SET message = %s, image_url = %s, updated_at = CURRENT_TIMESTAMP",
             (greeting_id, message, image_url, message, image_url)
         )
         conn.commit()
@@ -162,7 +164,7 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                 'isBase64Encoded': False
             }
         
-        cur.execute("DELETE FROM t_p33753390_simple_site_white_pu.greeting_settings WHERE id = %s", (greeting_id,))
+        cur.execute("DELETE FROM greeting_settings WHERE id = %s", (greeting_id,))
         conn.commit()
         cur.close()
         conn.close()
