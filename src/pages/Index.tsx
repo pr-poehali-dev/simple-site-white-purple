@@ -7,7 +7,7 @@ const Index = () => {
       <DraggableCircle 
         initialX={-20} 
         initialY={-20} 
-        size={600} 
+        size={400} 
         color="primary" 
         opacity={25} 
         blur="3xl"
@@ -18,7 +18,7 @@ const Index = () => {
       <DraggableCircle 
         initialX={5} 
         initialY={10} 
-        size={200} 
+        size={150} 
         color="primary" 
         opacity={30} 
         blur="2xl"
@@ -29,7 +29,7 @@ const Index = () => {
       <DraggableCircle 
         initialX={8} 
         initialY={35} 
-        size={120} 
+        size={100} 
         color="secondary" 
         opacity={40} 
         blur="xl"
@@ -37,11 +37,44 @@ const Index = () => {
         floatX={15}
         floatY={-25}
       />
+      <DraggableCircle 
+        initialX={15} 
+        initialY={5} 
+        size={80} 
+        color="primary" 
+        opacity={35} 
+        blur="xl"
+        floatDuration={16}
+        floatX={-10}
+        floatY={12}
+      />
+      <DraggableCircle 
+        initialX={2} 
+        initialY={45} 
+        size={120} 
+        color="secondary" 
+        opacity={30} 
+        blur="2xl"
+        floatDuration={20}
+        floatX={18}
+        floatY={-15}
+      />
+      <DraggableCircle 
+        initialX={12} 
+        initialY={60} 
+        size={90} 
+        color="primary" 
+        opacity={25} 
+        blur="xl"
+        floatDuration={19}
+        floatX={-12}
+        floatY={20}
+      />
       
       <DraggableCircle 
         initialX={85} 
         initialY={85} 
-        size={700} 
+        size={450} 
         color="primary" 
         opacity={20} 
         blur="3xl"
@@ -52,7 +85,7 @@ const Index = () => {
       <DraggableCircle 
         initialX={80} 
         initialY={20} 
-        size={250} 
+        size={180} 
         color="secondary" 
         opacity={35} 
         blur="2xl"
@@ -63,7 +96,7 @@ const Index = () => {
       <DraggableCircle 
         initialX={70} 
         initialY={10} 
-        size={150} 
+        size={110} 
         color="primary" 
         opacity={25} 
         blur="xl"
@@ -71,34 +104,67 @@ const Index = () => {
         floatX={-15}
         floatY={20}
       />
+      <DraggableCircle 
+        initialX={88} 
+        initialY={60} 
+        size={140} 
+        color="secondary" 
+        opacity={30} 
+        blur="2xl"
+        floatDuration={23}
+        floatX={22}
+        floatY={-18}
+      />
+      <DraggableCircle 
+        initialX={75} 
+        initialY={75} 
+        size={95} 
+        color="primary" 
+        opacity={28} 
+        blur="xl"
+        floatDuration={17}
+        floatX={-16}
+        floatY={14}
+      />
       
       <DraggableCircle 
         initialX={92} 
         initialY={50} 
-        size={180} 
+        size={130} 
         color="primary" 
         opacity={20} 
-        blur="3xl"
+        blur="2xl"
         floatDuration={24}
         floatX={25}
         floatY={-20}
       />
       <DraggableCircle 
         initialX={95} 
-        initialY={55} 
-        size={170} 
+        initialY={35} 
+        size={100} 
         color="secondary" 
         opacity={30} 
-        blur="2xl"
+        blur="xl"
         floatDuration={21}
         floatX={-18}
         floatY={22}
+      />
+      <DraggableCircle 
+        initialX={82} 
+        initialY={42} 
+        size={85} 
+        color="primary" 
+        opacity={32} 
+        blur="xl"
+        floatDuration={18}
+        floatX={14}
+        floatY={-16}
       />
       
       <DraggableCircle 
         initialX={-5} 
         initialY={88} 
-        size={500} 
+        size={380} 
         color="secondary" 
         opacity={25} 
         blur="3xl"
@@ -109,13 +175,69 @@ const Index = () => {
       <DraggableCircle 
         initialX={15} 
         initialY={70} 
-        size={100} 
+        size={105} 
         color="primary" 
         opacity={35} 
         blur="xl"
         floatDuration={17}
         floatX={-22}
         floatY={18}
+      />
+      <DraggableCircle 
+        initialX={8} 
+        initialY={80} 
+        size={125} 
+        color="secondary" 
+        opacity={28} 
+        blur="2xl"
+        floatDuration={22}
+        floatX={16}
+        floatY={-20}
+      />
+      
+      <DraggableCircle 
+        initialX={45} 
+        initialY={5} 
+        size={110} 
+        color="primary" 
+        opacity={22} 
+        blur="2xl"
+        floatDuration={21}
+        floatX={-20}
+        floatY={25}
+      />
+      <DraggableCircle 
+        initialX={50} 
+        initialY={90} 
+        size={95} 
+        color="secondary" 
+        opacity={27} 
+        blur="xl"
+        floatDuration={19}
+        floatX={18}
+        floatY={-22}
+      />
+      <DraggableCircle 
+        initialX={38} 
+        initialY={8} 
+        size={75} 
+        color="secondary" 
+        opacity={33} 
+        blur="xl"
+        floatDuration={16}
+        floatX={-14}
+        floatY={16}
+      />
+      <DraggableCircle 
+        initialX={55} 
+        initialY={95} 
+        size={88} 
+        color="primary" 
+        opacity={29} 
+        blur="xl"
+        floatDuration={20}
+        floatX={12}
+        floatY={-18}
       />
       
       <GreetingCard />
