@@ -26,6 +26,7 @@ export default function GreetingCard({
   const [message, setMessage] = useState('');
   const [tempMessage, setTempMessage] = useState('');
   const [currentImage, setCurrentImage] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -96,6 +97,12 @@ export default function GreetingCard({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      processFile(file);
+    }
+  };
+
+  const processFile = (file: File) => {
+    if (file.type.startsWith('image/')) {
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result as string;
@@ -106,16 +113,58 @@ export default function GreetingCard({
     }
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!isAuthenticated) {
+      return;
+    }
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (!isAuthenticated) {
+      setShowPasswordDialog(true);
+      return;
+    }
+
+    const file = e.dataTransfer.files?.[0];
+    if (file) {
+      processFile(file);
+    }
+  };
+
   return (
     <>
       <Card className="w-full max-w-2xl mx-auto overflow-hidden shadow-xl border-2 border-primary/30 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-blue-50/50 to-white">
-        <div className="relative h-64 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300 overflow-hidden group">
+        <div 
+          className={`relative h-64 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300 overflow-hidden group ${isDragging ? 'ring-4 ring-primary ring-offset-2' : ''}`}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <img 
             src={currentImage} 
             alt="Greeting" 
             className="w-full h-full object-cover opacity-90 hover:scale-105 transition-transform duration-500"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+          
+          {isDragging && (
+            <div className="absolute inset-0 bg-primary/20 backdrop-blur-sm flex items-center justify-center">
+              <div className="text-white text-xl font-bold flex items-center gap-2">
+                <Icon name="Upload" size={32} />
+                Отпустите для загрузки
+              </div>
+            </div>
+          )}
           
           <Button
             onClick={handleImageUpload}
