@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -11,6 +11,7 @@ const CORRECT_PASSWORD = "210212";
 
 export default function Settings() {
   const navigate = useNavigate();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(true);
   const [password, setPassword] = useState('');
@@ -50,6 +51,22 @@ export default function Settings() {
     localStorage.setItem('defaultSettings', JSON.stringify(defaultSettings));
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 2000);
+  };
+
+  const handleImageUpload = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        setDefaultImage(result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   if (!isAuthenticated) {
@@ -124,14 +141,32 @@ export default function Settings() {
 
           <div className="space-y-2">
             <Label htmlFor="defaultImage" className="text-lg font-medium">
-              URL изображения по умолчанию
+              Изображение по умолчанию
             </Label>
-            <Input
-              id="defaultImage"
-              value={defaultImage}
-              onChange={(e) => setDefaultImage(e.target.value)}
-              placeholder="https://..."
-              className="text-lg border-2 border-primary/30 focus:border-primary"
+            <div className="flex gap-3">
+              <Input
+                id="defaultImage"
+                value={defaultImage}
+                onChange={(e) => setDefaultImage(e.target.value)}
+                placeholder="https://... или выберите файл"
+                className="text-lg border-2 border-primary/30 focus:border-primary flex-1"
+              />
+              <Button
+                onClick={handleImageUpload}
+                variant="outline"
+                className="border-2 border-primary text-primary hover:bg-secondary"
+              >
+                <Icon name="Upload" size={18} className="mr-2" />
+                Выбрать фото
+              </Button>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={handleFileChange}
+              className="hidden"
             />
             {defaultImage && (
               <div className="mt-4 rounded-lg overflow-hidden border-2 border-primary/20">
