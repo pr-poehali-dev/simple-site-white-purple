@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Get greeting settings",
+      "method": "GET",
+      "path": "/",
+      "expectedStatus": 200,
+      "expectedBody": {
+        "message": "string",
+        "imageUrl": "string"
+      },
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Update greeting settings with auth",
+      "method": "POST",
+      "path": "/",
+      "headers": {
+        "X-Auth-Token": "210212"
+      },
+      "body": {
+        "message": "Test message",
+        "imageUrl": "https://example.com/test.jpg"
+      },
+      "expectedStatus": 200,
+      "expectedBody": {
+        "success": true
+      },
+      "bodyMatcher": "partial"
+    }
+  ]
+}

@@ -5,8 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import Icon from '@/components/ui/icon';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { useToast } from '@/hooks/use-toast';
 
 const CORRECT_PASSWORD = "210212";
+const API_URL = "https://functions.poehali.dev/828e1e69-52be-411c-9b7c-26486b3b2d8e";
 
 interface GreetingCardProps {
   initialMessage?: string;
@@ -18,6 +20,7 @@ export default function GreetingCard({
   imageUrl = "https://cdn.poehali.dev/projects/5575572e-9552-4ad2-b010-e12c5cc8067f/files/75543a6c-c893-4198-a0ba-6b48e331eb86.jpg"
 }: GreetingCardProps) {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [password, setPassword] = useState('');
@@ -27,18 +30,59 @@ export default function GreetingCard({
   const [tempMessage, setTempMessage] = useState('');
   const [currentImage, setCurrentImage] = useState('');
   const [isDragging, setIsDragging] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const savedMessage = localStorage.getItem('greetingMessage');
-    const savedImage = localStorage.getItem('greetingImage');
-    
-    setMessage(savedMessage || initialMessage);
-    setTempMessage(savedMessage || initialMessage);
-    setCurrentImage(savedImage || imageUrl);
-  }, [initialMessage, imageUrl]);
+    loadSettings();
+  }, []);
 
-  const handleReset = () => {
+  const loadSettings = async () => {
+    try {
+      const response = await fetch(API_URL);
+      const data = await response.json();
+      setMessage(data.message);
+      setTempMessage(data.message);
+      setCurrentImage(data.imageUrl);
+    } catch (error) {
+      setMessage(initialMessage);
+      setTempMessage(initialMessage);
+      setCurrentImage(imageUrl);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const saveSettings = async (newMessage: string, newImageUrl: string) => {
+    try {
+      const response = await fetch(API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Auth-Token': CORRECT_PASSWORD
+        },
+        body: JSON.stringify({
+          message: newMessage,
+          imageUrl: newImageUrl
+        })
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Сохранено!",
+          description: "Изменения видны всем пользователям",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось сохранить изменения",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleReset = async () => {
     if (!isAuthenticated) {
       setShowPasswordDialog(true);
       return;
@@ -50,8 +94,7 @@ export default function GreetingCard({
       setMessage(defaults.message);
       setTempMessage(defaults.message);
       setCurrentImage(defaults.image);
-      localStorage.setItem('greetingMessage', defaults.message);
-      localStorage.setItem('greetingImage', defaults.image);
+      await saveSettings(defaults.message, defaults.image);
     }
   };
 
@@ -66,7 +109,7 @@ export default function GreetingCard({
     }
   };
 
-  const handleEdit = () => {
+  const handleEdit = async () => {
     if (!isAuthenticated) {
       setShowPasswordDialog(true);
       return;
@@ -74,7 +117,7 @@ export default function GreetingCard({
 
     if (isEditing) {
       setMessage(tempMessage);
-      localStorage.setItem('greetingMessage', tempMessage);
+      await saveSettings(tempMessage, currentImage);
     } else {
       setTempMessage(message);
     }
@@ -104,10 +147,10 @@ export default function GreetingCard({
   const processFile = (file: File) => {
     if (file.type.startsWith('image/')) {
       const reader = new FileReader();
-      reader.onloadend = () => {
+      reader.onloadend = async () => {
         const result = reader.result as string;
         setCurrentImage(result);
-        localStorage.setItem('greetingImage', result);
+        await saveSettings(message, result);
       };
       reader.readAsDataURL(file);
     }
@@ -140,6 +183,16 @@ export default function GreetingCard({
       processFile(file);
     }
   };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto overflow-hidden shadow-xl border-2 border-primary/30 bg-gradient-to-br from-white via-blue-50/50 to-white">
+        <div className="p-8 text-center">
+          <Icon name="Loader2" size={48} className="animate-spin mx-auto text-primary" />
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <>
