@@ -4,7 +4,7 @@ interface DraggableCircleProps {
   initialX: number;
   initialY: number;
   size: number;
-  color: 'primary' | 'secondary';
+  color: string;
   opacity: number;
   blur: 'xl' | '2xl' | '3xl';
   floatDuration?: number;
@@ -93,7 +93,7 @@ export default function DraggableCircle({
       ref={circleRef}
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
-      className={`absolute rounded-full ${blurClass} bg-${color}/${opacity} cursor-move touch-none select-none transition-transform hover:scale-105`}
+      className={`absolute rounded-full ${blurClass} cursor-move touch-none select-none transition-transform hover:scale-105`}
       style={{
         width: `${size}px`,
         height: `${size}px`,
@@ -101,6 +101,8 @@ export default function DraggableCircle({
         top: isDragging ? `${position.y}px` : `${initialY}%`,
         transform: isDragging ? 'none' : undefined,
         animation: isDragging ? 'none' : `float-${initialX}-${initialY} ${floatDuration}s ease-in-out infinite`,
+        backgroundColor: color,
+        opacity: opacity / 100,
       }}
     >
       <style>
