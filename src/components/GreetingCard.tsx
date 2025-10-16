@@ -108,8 +108,8 @@ export default function GreetingCard({
 
   return (
     <>
-      <Card className="w-full max-w-2xl mx-auto overflow-hidden shadow-xl border-2 border-primary/20 hover:shadow-2xl transition-all duration-300">
-        <div className="relative h-64 bg-gradient-to-br from-primary via-primary/80 to-secondary overflow-hidden group">
+      <Card className="w-full max-w-2xl mx-auto overflow-hidden shadow-xl border-2 border-primary/30 hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-white via-blue-50/50 to-white">
+        <div className="relative h-64 bg-gradient-to-br from-blue-500 via-blue-400 to-blue-300 overflow-hidden group">
           <img 
             src={currentImage} 
             alt="Greeting" 
@@ -134,7 +134,7 @@ export default function GreetingCard({
           />
         </div>
         
-        <div className="p-8 bg-white">
+        <div className="p-8 bg-gradient-to-br from-white via-blue-50/30 to-white">
           <div className="mb-6">
             {isEditing ? (
               <div className="space-y-4">
