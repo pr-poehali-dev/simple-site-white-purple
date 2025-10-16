@@ -53,11 +53,11 @@ def handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
                     'isBase64Encoded': False
                 }
             
-            cur.execute("SELECT id, message FROM greeting_settings ORDER BY created_at DESC")
+            cur.execute("SELECT id, message, image_url FROM greeting_settings ORDER BY created_at DESC")
             rows = cur.fetchall()
             
             result = {
-                'greetings': [{'id': row[0], 'message': row[1]} for row in rows]
+                'versions': [{'id': row[0], 'message': row[1], 'imageUrl': row[2]} for row in rows]
             }
         else:
             cur.execute("SELECT message, image_url FROM greeting_settings WHERE id = %s", (greeting_id,))

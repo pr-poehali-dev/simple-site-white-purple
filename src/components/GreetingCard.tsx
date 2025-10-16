@@ -15,15 +15,22 @@ interface GreetingCardProps {
   imageUrl?: string;
 }
 
+interface Version {
+  id: string;
+  message: string;
+  imageUrl: string;
+}
+
 export default function GreetingCard({ 
   initialMessage = "Добро пожаловать!", 
   imageUrl = "https://cdn.poehali.dev/projects/5575572e-9552-4ad2-b010-e12c5cc8067f/files/75543a6c-c893-4198-a0ba-6b48e331eb86.jpg"
 }: GreetingCardProps) {
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showVersionsDialog, setShowVersionsDialog] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -33,6 +40,7 @@ export default function GreetingCard({
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [greetingId, setGreetingId] = useState('default');
+  const [versions, setVersions] = useState<Version[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -72,6 +80,24 @@ export default function GreetingCard({
     }
   };
 
+  const loadAllVersions = async () => {
+    try {
+      const response = await fetch(`${API_URL}?action=list`, {
+        headers: {
+          'X-Auth-Token': ADMIN_PASSWORD
+        }
+      });
+      const data = await response.json();
+      setVersions(data.versions || []);
+    } catch (error) {
+      toast({
+        title: "Ошибка",
+        description: "Не удалось загрузить версии",
+        variant: "destructive"
+      });
+    }
+  };
+
   const saveSettings = async (newMessage: string, newImageUrl: string) => {
     try {
       const response = await fetch(API_URL, {
@@ -99,22 +125,6 @@ export default function GreetingCard({
         description: "Не удалось сохранить изменения",
         variant: "destructive"
       });
-    }
-  };
-
-  const handleReset = async () => {
-    if (!isAuthenticated) {
-      setShowPasswordDialog(true);
-      return;
-    }
-
-    const savedDefaults = localStorage.getItem('defaultSettings');
-    if (savedDefaults) {
-      const defaults = JSON.parse(savedDefaults);
-      setMessage(defaults.message);
-      setTempMessage(defaults.message);
-      setCurrentImage(defaults.image);
-      await saveSettings(defaults.message, defaults.image);
     }
   };
 
@@ -204,6 +214,32 @@ export default function GreetingCard({
     }
   };
 
+  const handleVersionsClick = async () => {
+    if (!isAuthenticated) {
+      setShowPasswordDialog(true);
+      return;
+    }
+    await loadAllVersions();
+    setShowVersionsDialog(true);
+  };
+
+  const handleSwitchVersion = (versionId: string) => {
+    const newParams = new URLSearchParams(searchParams);
+    newParams.set('id', versionId);
+    setSearchParams(newParams);
+    setShowVersionsDialog(false);
+    window.location.reload();
+  };
+
+  const handleCopyLink = (versionId: string) => {
+    const url = `${window.location.origin}${window.location.pathname}?id=${versionId}`;
+    navigator.clipboard.writeText(url);
+    toast({
+      title: "Скопировано!",
+      description: "Ссылка скопирована в буфер обмена",
+    });
+  };
+
   if (isLoading) {
     return (
       <Card className="w-full max-w-2xl mx-auto overflow-hidden shadow-xl border-2 border-primary/30 bg-gradient-to-br from-white via-blue-50/50 to-white">
@@ -264,80 +300,67 @@ export default function GreetingCard({
                 <Input
                   value={tempMessage}
                   onChange={(e) => setTempMessage(e.target.value)}
-                  className="text-2xl font-bold text-center border-2 border-primary focus:border-primary focus:ring-primary"
-                  placeholder="Введите сообщение..."
+                  className="text-2xl font-bold border-2 border-primary/50 focus:border-primary"
+                  placeholder="Введите текст приветствия..."
                 />
-                <div className="flex gap-3 justify-center">
-                  <Button 
-                    onClick={handleEdit}
-                    className="bg-primary hover:bg-primary/90 text-white font-medium px-6"
-                  >
-                    <Icon name="Check" size={18} className="mr-2" />
+                <div className="flex gap-2">
+                  <Button onClick={handleEdit} className="flex-1">
+                    <Icon name="Check" size={16} className="mr-2" />
                     Сохранить
                   </Button>
-                  <Button 
-                    onClick={handleCancel}
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6"
-                  >
-                    <Icon name="X" size={18} className="mr-2" />
+                  <Button onClick={handleCancel} variant="outline" className="flex-1">
+                    <Icon name="X" size={16} className="mr-2" />
                     Отмена
                   </Button>
                 </div>
               </div>
             ) : (
-              <div className="text-center">
-                <h2 className="text-3xl font-bold text-foreground mb-4 bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              <div className="space-y-4">
+                <h2 className="text-3xl font-bold text-center bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 bg-clip-text text-transparent leading-normal pb-1">
                   {message}
                 </h2>
-                <div className="flex gap-3 justify-center flex-wrap">
-                  <Button 
-                    onClick={handleEdit}
-                    className="bg-primary hover:bg-primary/90 text-white font-medium px-6 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Icon name="Edit3" size={18} className="mr-2" />
-                    Редактировать
-                  </Button>
-                  <Button 
-                    onClick={handleReset}
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Icon name="RotateCcw" size={18} className="mr-2" />
-                    Сбросить
-                  </Button>
-                  <Button 
-                    onClick={() => navigate('/settings')}
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Icon name="Settings" size={18} className="mr-2" />
-                    Настройки
-                  </Button>
-                  <Button 
-                    onClick={() => navigate('/manage')}
-                    variant="outline"
-                    className="border-2 border-primary text-primary hover:bg-secondary font-medium px-6 shadow-lg hover:shadow-xl transition-all"
-                  >
-                    <Icon name="Users" size={18} className="mr-2" />
-                    Версии
-                  </Button>
-                </div>
               </div>
             )}
+          </div>
+          
+          <div className="flex gap-2">
+            <Button 
+              onClick={handleEdit} 
+              variant="outline" 
+              className="flex-1 border-2 border-primary/50 hover:bg-primary hover:text-white transition-all"
+            >
+              <Icon name={isEditing ? "Check" : "Edit"} size={16} className="mr-2" />
+              {isEditing ? "Сохранить" : "Изменить"}
+            </Button>
+            <Button 
+              onClick={handleVersionsClick}
+              variant="outline" 
+              className="flex-1 border-2 border-purple-500/50 hover:bg-purple-500 hover:text-white transition-all"
+            >
+              <Icon name="Layers" size={16} className="mr-2" />
+              Версии
+            </Button>
+            <Button 
+              onClick={() => navigate('/settings')}
+              variant="outline" 
+              className="flex-1 border-2 border-blue-500/50 hover:bg-blue-500 hover:text-white transition-all"
+            >
+              <Icon name="Settings" size={16} className="mr-2" />
+              Настройки
+            </Button>
           </div>
         </div>
       </Card>
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent>
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold text-center">Введите пароль</DialogTitle>
-            <DialogDescription className="text-center">
-              Для редактирования требуется авторизация
+            <DialogTitle>Введите пароль</DialogTitle>
+            <DialogDescription>
+              Для редактирования требуется пароль
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4">
             <Input
               type="password"
               value={password}
@@ -346,19 +369,70 @@ export default function GreetingCard({
                 setPasswordError(false);
               }}
               onKeyPress={(e) => e.key === 'Enter' && handlePasswordSubmit()}
-              placeholder="Пароль"
-              className={`text-center text-lg ${passwordError ? 'border-destructive' : ''}`}
+              placeholder="Введите пароль"
+              className={passwordError ? 'border-red-500' : ''}
             />
             {passwordError && (
-              <p className="text-sm text-destructive text-center">Неверный пароль</p>
+              <p className="text-sm text-red-500">Неверный пароль</p>
             )}
-            <Button 
-              onClick={handlePasswordSubmit}
-              className="w-full bg-primary hover:bg-primary/90 text-white font-medium"
-            >
-              <Icon name="Lock" size={18} className="mr-2" />
-              Войти
+            <Button onClick={handlePasswordSubmit} className="w-full">
+              Подтвердить
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showVersionsDialog} onOpenChange={setShowVersionsDialog}>
+        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Все версии приветствий</DialogTitle>
+            <DialogDescription>
+              Выберите версию для просмотра или скопируйте ссылку для отправки
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            {versions.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">Нет доступных версий</p>
+            ) : (
+              versions.map((version) => (
+                <Card key={version.id} className="p-4 border-2 hover:border-primary/50 transition-all">
+                  <div className="flex gap-4">
+                    <img 
+                      src={version.imageUrl} 
+                      alt={version.id}
+                      className="w-24 h-24 object-cover rounded-lg"
+                    />
+                    <div className="flex-1">
+                      <h3 className="font-bold text-lg mb-1">
+                        {version.id}
+                        {version.id === greetingId && (
+                          <span className="ml-2 text-xs bg-primary text-white px-2 py-1 rounded">Текущая</span>
+                        )}
+                      </h3>
+                      <p className="text-sm text-muted-foreground mb-3">{version.message}</p>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={() => handleSwitchVersion(version.id)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Icon name="Eye" size={14} className="mr-1" />
+                          Открыть
+                        </Button>
+                        <Button 
+                          onClick={() => handleCopyLink(version.id)}
+                          size="sm"
+                          variant="outline"
+                        >
+                          <Icon name="Link" size={14} className="mr-1" />
+                          Копировать ссылку
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                </Card>
+              ))
+            )}
           </div>
         </DialogContent>
       </Dialog>
