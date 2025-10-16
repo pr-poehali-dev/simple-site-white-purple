@@ -31,7 +31,6 @@ export default function GreetingCard({
   const { toast } = useToast();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
-  const [showVersionsDialog, setShowVersionsDialog] = useState(false);
   const [password, setPassword] = useState('');
   const [passwordError, setPasswordError] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -42,6 +41,7 @@ export default function GreetingCard({
   const [isLoading, setIsLoading] = useState(true);
   const [greetingId, setGreetingId] = useState('default');
   const [versions, setVersions] = useState<Version[]>([]);
+  const [showVersionsList, setShowVersionsList] = useState(false);
   const [editingVersionId, setEditingVersionId] = useState<string | null>(null);
   const [editingMessage, setEditingMessage] = useState('');
   const [editingImage, setEditingImage] = useState('');
@@ -69,6 +69,12 @@ export default function GreetingCard({
     }
   }, [greetingId]);
 
+  useEffect(() => {
+    if (isAuthenticated) {
+      loadAllVersions();
+    }
+  }, [isAuthenticated]);
+
   const loadSettings = async () => {
     try {
       const response = await fetch(`${API_URL}?id=${greetingId}`);
@@ -94,6 +100,7 @@ export default function GreetingCard({
       });
       const data = await response.json();
       setVersions(data.versions || []);
+      setShowVersionsList(true);
     } catch (error) {
       toast({
         title: "Ошибка",
@@ -257,7 +264,6 @@ export default function GreetingCard({
       return;
     }
     await loadAllVersions();
-    setShowVersionsDialog(true);
   };
 
   const handleCopyUrl = (versionId: string) => {
@@ -273,7 +279,6 @@ export default function GreetingCard({
     const newParams = new URLSearchParams(searchParams);
     newParams.set('id', versionId);
     setSearchParams(newParams);
-    setShowVersionsDialog(false);
     window.location.reload();
   };
 
@@ -323,85 +328,172 @@ export default function GreetingCard({
   }
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
-      <Card className="w-full max-w-2xl shadow-2xl overflow-hidden">
-        <div 
-          className={`relative h-64 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 transition-all duration-300 ${isDragging ? 'ring-4 ring-purple-500 ring-opacity-50' : ''}`}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onDrop={handleDrop}
-        >
-          {currentImage && (
-            <img 
-              src={currentImage} 
-              alt="Greeting" 
-              className="w-full h-full object-cover"
-            />
-          )}
-          {isDragging && (
-            <div className="absolute inset-0 bg-purple-500 bg-opacity-20 flex items-center justify-center">
-              <div className="text-white text-xl font-semibold">Отпустите файл здесь</div>
-            </div>
-          )}
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleFileChange}
-            className="hidden"
-          />
-        </div>
-
-        <div className="p-8 space-y-6">
-          {isEditing ? (
-            <div className="space-y-4">
-              <Label htmlFor="message" className="text-lg font-semibold text-gray-700">
-                Редактировать сообщение
-              </Label>
-              <Input
-                id="message"
-                value={tempMessage}
-                onChange={(e) => setTempMessage(e.target.value)}
-                className="text-lg"
-                placeholder="Введите новое сообщение"
+    <div className="min-h-screen flex gap-4 p-4 bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+      <div className="flex-1 flex items-center justify-center">
+        <Card className="w-full max-w-2xl shadow-2xl overflow-hidden">
+          <div 
+            className={`relative h-64 bg-gradient-to-br from-purple-400 via-pink-400 to-blue-400 transition-all duration-300 ${isDragging ? 'ring-4 ring-purple-500 ring-opacity-50' : ''}`}
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+          >
+            {currentImage && (
+              <img 
+                src={currentImage} 
+                alt="Greeting" 
+                className="w-full h-full object-cover"
               />
-              <div className="flex gap-2">
-                <Button onClick={handleEdit} className="flex-1">
-                  <Icon name="Check" size={18} className="mr-2" />
-                  Сохранить
-                </Button>
-                <Button onClick={handleCancel} variant="outline" className="flex-1">
-                  <Icon name="X" size={18} className="mr-2" />
-                  Отмена
-                </Button>
+            )}
+            {isDragging && (
+              <div className="absolute inset-0 bg-purple-500 bg-opacity-20 flex items-center justify-center">
+                <div className="text-white text-xl font-semibold">Отпустите файл здесь</div>
               </div>
-            </div>
-          ) : (
-            <div className="text-center">
-              <h1 className="text-4xl font-bold text-gray-800 mb-4">{message}</h1>
-            </div>
-          )}
-
-          <div className="flex gap-2 flex-wrap">
-            <Button 
-              onClick={handleEdit} 
-              variant={isEditing ? "default" : "outline"}
-              className="flex-1 min-w-[140px]"
-            >
-              <Icon name="Edit" size={18} className="mr-2" />
-              {isEditing ? 'Готово' : 'Редактировать текст'}
-            </Button>
-            <Button onClick={handleImageUpload} variant="outline" className="flex-1 min-w-[140px]">
-              <Icon name="Upload" size={18} className="mr-2" />
-              Изменить картинку
-            </Button>
-            <Button onClick={handleVersionsClick} variant="outline" className="flex-1 min-w-[140px]">
-              <Icon name="List" size={18} className="mr-2" />
-              Все версии
-            </Button>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleFileChange}
+              className="hidden"
+            />
           </div>
+
+          <div className="p-8 space-y-6">
+            {isEditing ? (
+              <div className="space-y-4">
+                <Label htmlFor="message" className="text-lg font-semibold text-gray-700">
+                  Редактировать сообщение
+                </Label>
+                <Input
+                  id="message"
+                  value={tempMessage}
+                  onChange={(e) => setTempMessage(e.target.value)}
+                  className="text-lg"
+                  placeholder="Введите новое сообщение"
+                />
+                <div className="flex gap-2">
+                  <Button onClick={handleEdit} className="flex-1">
+                    <Icon name="Check" size={18} className="mr-2" />
+                    Сохранить
+                  </Button>
+                  <Button onClick={handleCancel} variant="outline" className="flex-1">
+                    <Icon name="X" size={18} className="mr-2" />
+                    Отмена
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center">
+                <h1 className="text-4xl font-bold text-gray-800 mb-4">{message}</h1>
+              </div>
+            )}
+
+            <div className="flex gap-2 flex-wrap">
+              <Button 
+                onClick={handleEdit} 
+                variant={isEditing ? "default" : "outline"}
+                className="flex-1 min-w-[140px]"
+              >
+                <Icon name="Edit" size={18} className="mr-2" />
+                {isEditing ? 'Готово' : 'Редактировать текст'}
+              </Button>
+              <Button onClick={handleImageUpload} variant="outline" className="flex-1 min-w-[140px]">
+                <Icon name="Upload" size={18} className="mr-2" />
+                Изменить картинку
+              </Button>
+              <Button onClick={handleVersionsClick} variant="outline" className="flex-1 min-w-[140px]">
+                <Icon name="List" size={18} className="mr-2" />
+                Все версии
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
+
+      {showVersionsList && (
+        <div className="w-96 overflow-y-auto max-h-screen pb-4">
+          <Card className="p-4 shadow-xl sticky top-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold">Версии (100)</h2>
+              <Button 
+                size="sm" 
+                variant="ghost"
+                onClick={() => setShowVersionsList(false)}
+              >
+                <Icon name="X" size={18} />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              {versions.map((version) => (
+                <div key={version.id} className="p-3 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                  {editingVersionId === version.id ? (
+                    <div className="space-y-2">
+                      <div>
+                        <Label className="text-xs text-gray-500">ID: {version.id}</Label>
+                      </div>
+                      <Input
+                        value={editingMessage}
+                        onChange={(e) => setEditingMessage(e.target.value)}
+                        placeholder="Текст"
+                        className="text-sm"
+                      />
+                      <Input
+                        value={editingImage}
+                        onChange={(e) => setEditingImage(e.target.value)}
+                        placeholder="URL изображения"
+                        className="text-sm"
+                      />
+                      <div className="flex gap-1">
+                        <Button onClick={saveEditingVersion} size="sm" className="flex-1 text-xs">
+                          <Icon name="Check" size={14} className="mr-1" />
+                          Сохранить
+                        </Button>
+                        <Button onClick={cancelEditingVersion} variant="outline" size="sm" className="text-xs">
+                          <Icon name="X" size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div>
+                        <p className="text-xs text-gray-500 mb-1">ID: {version.id}</p>
+                        <p className="text-sm font-medium text-gray-700 line-clamp-2">{version.message}</p>
+                      </div>
+                      <div className="flex gap-1">
+                        <Button 
+                          onClick={() => handleSwitchVersion(version.id)} 
+                          size="sm" 
+                          variant={greetingId === version.id ? "default" : "outline"}
+                          className="flex-1 text-xs"
+                        >
+                          <Icon name="Eye" size={14} className="mr-1" />
+                          {greetingId === version.id ? 'Текущая' : 'Открыть'}
+                        </Button>
+                        <Button 
+                          onClick={() => startEditingVersion(version)} 
+                          size="sm" 
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          <Icon name="Edit" size={14} />
+                        </Button>
+                        <Button 
+                          onClick={() => handleCopyUrl(version.id)} 
+                          size="sm" 
+                          variant="outline"
+                          className="text-xs"
+                        >
+                          <Icon name="Copy" size={14} />
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </Card>
         </div>
-      </Card>
+      )}
 
       <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
         <DialogContent>
@@ -433,121 +525,13 @@ export default function GreetingCard({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={showVersionsDialog} onOpenChange={setShowVersionsDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Все версии (100 последних)</DialogTitle>
-            <DialogDescription>
-              Выберите версию для просмотра. Редактирование требует пароль.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            {versions.map((version) => (
-              <div key={version.id} className="p-4 border rounded-lg bg-gray-50">
-                {editingVersionId === version.id ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <Label className="font-semibold min-w-[60px]">ID:</Label>
-                      <span className="text-sm text-gray-600">{version.id}</span>
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Сообщение:</Label>
-                      <Input
-                        value={editingMessage}
-                        onChange={(e) => setEditingMessage(e.target.value)}
-                        placeholder="Текст сообщения"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label>Картинка:</Label>
-                      <div className="flex gap-2">
-                        <Input
-                          value={editingImage}
-                          onChange={(e) => setEditingImage(e.target.value)}
-                          placeholder="URL изображения"
-                          className="flex-1"
-                        />
-                        <Button onClick={handleEditVersionImageUpload} variant="outline" size="sm">
-                          <Icon name="Upload" size={16} />
-                        </Button>
-                      </div>
-                      {editingImage && (
-                        <img 
-                          src={editingImage} 
-                          alt="Preview" 
-                          className="w-full h-32 object-cover rounded mt-2"
-                        />
-                      )}
-                    </div>
-                    <div className="flex gap-2">
-                      <Button onClick={saveEditingVersion} size="sm" className="flex-1">
-                        <Icon name="Check" size={16} className="mr-1" />
-                        Сохранить
-                      </Button>
-                      <Button onClick={cancelEditingVersion} variant="outline" size="sm" className="flex-1">
-                        <Icon name="X" size={16} className="mr-1" />
-                        Отмена
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-1 flex-1">
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-sm text-gray-500">ID:</span>
-                          <span className="text-sm">{version.id}</span>
-                        </div>
-                        <p className="text-gray-700">{version.message}</p>
-                        {version.imageUrl && (
-                          <img 
-                            src={version.imageUrl} 
-                            alt={version.id} 
-                            className="w-full h-24 object-cover rounded mt-2"
-                          />
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                      <Button 
-                        onClick={() => handleSwitchVersion(version.id)} 
-                        size="sm" 
-                        className="flex-1"
-                      >
-                        <Icon name="Eye" size={16} className="mr-1" />
-                        Открыть
-                      </Button>
-                      <Button 
-                        onClick={() => startEditingVersion(version)} 
-                        size="sm" 
-                        variant="outline"
-                      >
-                        <Icon name="Edit" size={16} className="mr-1" />
-                        Редактировать
-                      </Button>
-                      <Button 
-                        onClick={() => handleCopyUrl(version.id)} 
-                        size="sm" 
-                        variant="outline"
-                      >
-                        <Icon name="Copy" size={16} className="mr-1" />
-                        Копировать
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-          <input
-            ref={editVersionFileInputRef}
-            type="file"
-            accept="image/*"
-            onChange={handleEditVersionFileChange}
-            className="hidden"
-          />
-        </DialogContent>
-      </Dialog>
+      <input
+        ref={editVersionFileInputRef}
+        type="file"
+        accept="image/*"
+        onChange={handleEditVersionFileChange}
+        className="hidden"
+      />
     </div>
   );
 }
