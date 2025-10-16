@@ -1,21 +1,122 @@
 import GreetingCard from '@/components/GreetingCard';
+import DraggableCircle from '@/components/DraggableCircle';
 
 const Index = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-secondary via-white to-primary/10 p-6 relative overflow-hidden">
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-primary/25 rounded-full blur-3xl animate-pulse" />
-      <div className="absolute top-20 left-5 w-32 h-32 bg-primary/30 rounded-full blur-2xl" />
-      <div className="absolute top-1/3 left-10 w-20 h-20 bg-secondary/40 rounded-full blur-xl animate-pulse" style={{ animationDelay: '2s' }} />
+      <DraggableCircle 
+        initialX={-20} 
+        initialY={-20} 
+        size={600} 
+        color="primary" 
+        opacity={25} 
+        blur="3xl"
+        floatDuration={25}
+        floatX={30}
+        floatY={20}
+      />
+      <DraggableCircle 
+        initialX={5} 
+        initialY={10} 
+        size={200} 
+        color="primary" 
+        opacity={30} 
+        blur="2xl"
+        floatDuration={18}
+        floatX={-20}
+        floatY={15}
+      />
+      <DraggableCircle 
+        initialX={8} 
+        initialY={35} 
+        size={120} 
+        color="secondary" 
+        opacity={40} 
+        blur="xl"
+        floatDuration={22}
+        floatX={15}
+        floatY={-25}
+      />
       
-      <div className="absolute -bottom-40 -right-40 w-[32rem] h-[32rem] bg-primary/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
-      <div className="absolute bottom-32 right-10 w-40 h-40 bg-secondary/35 rounded-full blur-2xl" />
-      <div className="absolute bottom-10 right-1/4 w-24 h-24 bg-primary/25 rounded-full blur-xl animate-pulse" style={{ animationDelay: '1.5s' }} />
+      <DraggableCircle 
+        initialX={85} 
+        initialY={85} 
+        size={700} 
+        color="primary" 
+        opacity={20} 
+        blur="3xl"
+        floatDuration={28}
+        floatX={-25}
+        floatY={30}
+      />
+      <DraggableCircle 
+        initialX={80} 
+        initialY={20} 
+        size={250} 
+        color="secondary" 
+        opacity={35} 
+        blur="2xl"
+        floatDuration={20}
+        floatX={20}
+        floatY={-15}
+      />
+      <DraggableCircle 
+        initialX={70} 
+        initialY={10} 
+        size={150} 
+        color="primary" 
+        opacity={25} 
+        blur="xl"
+        floatDuration={19}
+        floatX={-15}
+        floatY={20}
+      />
       
-      <div className="absolute top-10 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-3xl" />
-      <div className="absolute top-1/2 right-5 w-28 h-28 bg-secondary/30 rounded-full blur-2xl animate-pulse" style={{ animationDelay: '0.5s' }} />
+      <DraggableCircle 
+        initialX={92} 
+        initialY={50} 
+        size={180} 
+        color="primary" 
+        opacity={20} 
+        blur="3xl"
+        floatDuration={24}
+        floatX={25}
+        floatY={-20}
+      />
+      <DraggableCircle 
+        initialX={95} 
+        initialY={55} 
+        size={170} 
+        color="secondary" 
+        opacity={30} 
+        blur="2xl"
+        floatDuration={21}
+        floatX={-18}
+        floatY={22}
+      />
       
-      <div className="absolute -bottom-20 -left-20 w-72 h-72 bg-secondary/25 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1.8s' }} />
-      <div className="absolute bottom-1/3 left-20 w-16 h-16 bg-primary/35 rounded-full blur-xl" />
+      <DraggableCircle 
+        initialX={-5} 
+        initialY={88} 
+        size={500} 
+        color="secondary" 
+        opacity={25} 
+        blur="3xl"
+        floatDuration={26}
+        floatX={20}
+        floatY={-28}
+      />
+      <DraggableCircle 
+        initialX={15} 
+        initialY={70} 
+        size={100} 
+        color="primary" 
+        opacity={35} 
+        blur="xl"
+        floatDuration={17}
+        floatX={-22}
+        floatY={18}
+      />
       
       <GreetingCard />
     </div>
